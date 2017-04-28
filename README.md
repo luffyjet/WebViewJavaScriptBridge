@@ -2,7 +2,7 @@ WebViewJavascriptBridge
 ==========================
 根据[IOS marcuswestin/WebViewJavascriptBridge](https://github.com/marcuswestin/WebViewJavascriptBridge) 编写而来的JavascriptBridge，这样一来前端可以公用一套JS代码。使用方法和 marcuswestin/WebViewJavascriptBridge 也是基本一样。
 
-同时也在此之上做了加强，根据Cordova的源码，将每一种消息封装成一个插件(RequestHandler)，并统一管理起来(HandlerManager)。
+==同时也在此之上做了加强，根据Cordova的源码，将每一种消息封装成一个插件(RequestHandler)，并统一管理起来(HandlerManager)。具体请看下面的 插件管理功能一栏==
 
 An Android bridge for sending messages between Java and JavaScript in WebViews. Based on [IOS marcuswestin/WebViewJavascriptBridge](https://github.com/marcuswestin/WebViewJavascriptBridge).
 
@@ -30,7 +30,7 @@ See the `app/` folder.
 Usage
 -----
 
-1) 
+1) Init WebViewJavaScriptBridge
 
 ```java
 WebSettings settings = webView.getSettings();
@@ -66,20 +66,20 @@ mBridge.callHandler("NativeCallJS", model.toJSON(), new WebViewJavaScriptBridgeB
 	
 ```javascript
 function setupWebViewJavascriptBridge(callback) {
-    		if(window.WebViewJavascriptBridge) {
-    			return callback(WebViewJavascriptBridge);
-    		}
-    		if(window.WVJBCallbacks) {
-    			return window.WVJBCallbacks.push(callback);
-    		}
-    		window.WVJBCallbacks = [callback];
-    		var WVJBIframe = document.createElement('iframe');
-    		WVJBIframe.style.display = 'none';
-    		WVJBIframe.src = 'wvjbscheme://__BRIDGE_LOADED__';
-    		document.documentElement.appendChild(WVJBIframe);
-    		setTimeout(function() {
-    			document.documentElement.removeChild(WVJBIframe)
-    		}, 0);
+	if(window.WebViewJavascriptBridge) {
+		return callback(WebViewJavascriptBridge);
+	}
+	if(window.WVJBCallbacks) {
+		return window.WVJBCallbacks.push(callback);
+	}
+	window.WVJBCallbacks = [callback];
+	var WVJBIframe = document.createElement('iframe');
+	WVJBIframe.style.display = 'none';
+	WVJBIframe.src = 'wvjbscheme://__BRIDGE_LOADED__';
+	document.documentElement.appendChild(WVJBIframe);
+	setTimeout(function() {
+		document.documentElement.removeChild(WVJBIframe)
+	}, 0);
 }
 ```
 
@@ -87,23 +87,23 @@ function setupWebViewJavascriptBridge(callback) {
 
 ```javascript
 setupWebViewJavascriptBridge(function(bridge) {
-			/* Initialize your app here */
+	/* Initialize your app here */
 
- 			bridge.registerHandler('NativeCallJS', function(data, responseCallback) {
-            		var responseData = {
-            				'Javascript Says': 'Right back atcha!'
-            		};
+	bridge.registerHandler('NativeCallJS', function(data, responseCallback) {
+		var responseData = {
+				'Javascript Says': 'Right back atcha!'
+		};
 
-            		log('Native call JS with ', data);
-            		responseCallback(responseData);
-            });
+		log('Native call JS with ', data);
+		responseCallback(responseData);
+    });
 
-    		var doc = document;
-    		var readyEvent = doc.createEvent('Events');
-    		readyEvent.initEvent('WebViewJavascriptBridgeReady');
-    		readyEvent.bridge = WebViewJavascriptBridge;
-    		doc.dispatchEvent(readyEvent);
-    	});
+	var doc = document;
+	var readyEvent = doc.createEvent('Events');
+	readyEvent.initEvent('WebViewJavascriptBridgeReady');
+	readyEvent.bridge = WebViewJavascriptBridge;
+	doc.dispatchEvent(readyEvent);
+});
 ```
 
 
