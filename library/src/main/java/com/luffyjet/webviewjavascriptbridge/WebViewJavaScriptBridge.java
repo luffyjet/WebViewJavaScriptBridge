@@ -36,7 +36,7 @@ public class WebViewJavaScriptBridge extends WebViewClient implements WebViewJav
     private WeakReference<WebView> _webView;
     private WeakReference<WebViewClient> _webViewDelegate;
     private WebViewJavaScriptBridgeBase _base;
-    public static final String LOCAL_FILE_SCHEMA = "ccplusfile://";
+    public static final String LOCAL_FILE_SCHEMA = "wjbfile://";
 
     private WebViewJavaScriptBridge() {
 

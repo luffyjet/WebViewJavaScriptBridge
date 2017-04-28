@@ -39,10 +39,10 @@ public class ConfigXmlParser {
 
     public void parse(Context action) {
         // First checking the class namespace for config.xml
-        int id = action.getResources().getIdentifier("ccpconfig", "xml", action.getClass().getPackage().getName());
+        int id = action.getResources().getIdentifier("wjbconfig", "xml", action.getClass().getPackage().getName());
         if (id == 0) {
             // If we couldn't find config.xml there, we'll look in the namespace from AndroidManifest.xml
-            id = action.getResources().getIdentifier("ccpconfig", "xml", action.getPackageName());
+            id = action.getResources().getIdentifier("wjbconfig", "xml", action.getPackageName());
             if (id == 0) {
                 return;
             }

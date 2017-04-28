@@ -9,7 +9,7 @@ import android.telephony.TelephonyManager;
  * Title :    
  * Author : luffyjet 
  * Date : 15/12/31
- * Project : ccplus2
+ * Project :
  * Site : http://www.luffyjet.com
  */
 public class NetworkStauts {

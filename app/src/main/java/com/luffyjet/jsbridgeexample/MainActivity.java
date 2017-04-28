@@ -1,36 +1,39 @@
 package com.luffyjet.jsbridgeexample;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
-import android.provider.MediaStore;
+import android.os.Process;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
+import com.luffyjet.webviewjavascriptbridge.BridgeInterface;
+import com.luffyjet.webviewjavascriptbridge.JSResult;
+import com.luffyjet.webviewjavascriptbridge.RequestHandler;
 import com.luffyjet.webviewjavascriptbridge.WebViewJavaScriptBridge;
 import com.luffyjet.webviewjavascriptbridge.WebViewJavaScriptBridgeBase;
 
 import org.json.JSONObject;
 
-import java.io.File;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements BridgeInterface{
     private static final String TAG = MainActivity.class.getSimpleName();
     WebViewJavaScriptBridge mBridge;
+    RequestHandler mRequestHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,25 +52,34 @@ public class MainActivity extends AppCompatActivity {
         Button disableTimeoutBtn = (Button) findViewById(R.id.disable_timeout);
         Button refreshBtn = (Button) findViewById(R.id.refresh);
 
-        WebViewJavaScriptBridge.enableLogging();
 
-        mBridge = WebViewJavaScriptBridge.bridgeForWebView(this,webView);
-        mBridge.setWebViewDelegate(new MyWebViewClient());
-        webView.setWebChromeClient(new MyChromeClient());
-//        Model model = new Model();
-//        model.name = "test";
-//        model.age = 0;
-//        model.msg = "before ready";
-
-//        mBridge.callHandler("NativeCallJS", model.toJSON());
+        //Start 初始化 WebViewJavaScriptBridge
+        WebViewJavaScriptBridge.enableLogging();//打印Log
+        WebSettings settings = webView.getSettings();
+        settings.setJavaScriptEnabled(true);//很关键
+        mBridge = WebViewJavaScriptBridge.bridgeForWebView(this, webView);
+        mBridge.setWebViewDelegate(new MyWebViewClient());//设置WebViewClient
+        webView.setWebChromeClient(new MyChromeClient());//设置ChromeClient
+        //End
 
 
         callJsBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //向js端发送消息
                 callHandler();
             }
         });
+
+        //注册一个 处理 js端发来消息的 handler
+        mBridge.registerHandler("abs", new WebViewJavaScriptBridgeBase.WVJBHandler() {
+            @Override
+            public void handle(JSONObject data, WebViewJavaScriptBridgeBase.WVJBResponseCallback responseCallback) {
+                Log.d(TAG, "from JS req: " + data.toString());
+                responseCallback.callback(new JSResult("i like milk from native").toJson());
+            }
+        });
+
 
         disableTimeoutBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -76,19 +88,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
         refreshBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 webView.reload();
-            }
-        });
-
-
-        mBridge.registerHandler("", new WebViewJavaScriptBridgeBase.WVJBHandler() {
-            @Override
-            public void handle(JSONObject data, WebViewJavaScriptBridgeBase.WVJBResponseCallback responseCallback) {
-
             }
         });
 
@@ -97,6 +100,55 @@ public class MainActivity extends AppCompatActivity {
         webView.loadUrl("file:///android_asset/ExampleApp.html");
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (null != mRequestHandler) {
+            RequestHandler callback = mRequestHandler;
+            mRequestHandler = null;
+            callback.onActivityResult(requestCode, resultCode, data);
+            return;
+        }
+
+        //other code
+    }
+
+    @Override
+    public void startActivityForResult(RequestHandler command, Intent intent, int requestCode) {
+        setActivityResultCallback(command);
+        startActivityForResult(intent, requestCode);
+    }
+
+    @Override
+    public void setActivityResultCallback(RequestHandler plugin) {
+        mRequestHandler = plugin;
+    }
+
+    @Override
+    public Activity getActivity() {
+        return this;
+    }
+
+    @Override
+    public ExecutorService getThreadPool() {
+        return Executors.newCachedThreadPool(new ThreadFactory() {
+            @Override
+            public Thread newThread(final Runnable r) {
+                return  new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+                        r.run();
+                    }
+                },"Test");
+            }
+        });
+    }
+
+
+    /**
+     * 发送消息给JS端
+     */
     void callHandler() {
         Model model = new Model();
         model.name = "lucy";
@@ -106,7 +158,8 @@ public class MainActivity extends AppCompatActivity {
         mBridge.callHandler("NativeCallJS", model.toJSON(), new WebViewJavaScriptBridgeBase.WVJBResponseCallback() {
             @Override
             public void callback(String responseData) {
-                Log.d(TAG, "NativeCallJS responded:" + responseData);
+                Log.d(TAG, "JS responded:" + responseData);
+                Toast.makeText(MainActivity.this, "JS responded:" + responseData , Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -115,15 +168,11 @@ public class MainActivity extends AppCompatActivity {
         mBridge.disableJavscriptAlertBoxSafetyTimeout();
     }
 
-    private ValueCallback<Uri> mUploadMessage;
-    ValueCallback<Uri[]> mFilePathCallback;
-
     class MyChromeClient extends WebChromeClient {
 
         // Android < 3.0
         public void openFileChooser(ValueCallback<Uri> uploadMsg) {
-            mUploadMessage = uploadMsg;
-            pickImg(FILE_CHOOSER_RESULT_CODE);
+            //choose image or take photo
         }
 
         // Android > 3.0
@@ -136,10 +185,10 @@ public class MainActivity extends AppCompatActivity {
             openFileChooser(uploadMsg);
         }
 
+        //Android >= 5.0
         @Override
         public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
-            mFilePathCallback = filePathCallback;
-            pickImg(FILE_CHOOSER_RESULT_CODE_LOLIPOP);
+            //choose image or take photo
             return true;
         }
     }
@@ -178,161 +227,6 @@ public class MainActivity extends AppCompatActivity {
 
         public String toJSON() {
             return new Gson().toJson(this);
-        }
-    }
-
-    private static final int FILE_CHOOSER_RESULT_CODE = 0x001;
-    private static final int FILE_CHOOSER_RESULT_CODE_LOLIPOP = 0x101;
-    private int FILE_CHOOSER_VERSION;
-    int pos;
-
-    private void pickImg(final int code) {
-//        ToastUtil.show("pickImg");
-        FILE_CHOOSER_VERSION = code;
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, new String[]{"拍照", "相册", "取消"});
-
-        pos = -1;
-
-        AlertDialog dialog = new AlertDialog.Builder(this).setTitle("选取图片").setSingleChoiceItems(adapter, -1, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                pos = which;
-                switch (which) {
-                    case 0:
-                        takePhoto();
-
-                        break;
-                    case 1:
-
-                        Intent i = new Intent(Intent.ACTION_GET_CONTENT);
-                        i.addCategory(Intent.CATEGORY_OPENABLE);
-                        i.setType("image/*");
-                        startActivityForResult(Intent.createChooser(i, "选取图片"), IMAGE);
-
-                        break;
-                    case 3:
-
-
-                        break;
-                    default:
-                        break;
-                }
-                dialog.dismiss();
-            }
-        }).create();
-
-        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface dialog) {
-                if (pos != 0 && pos != 1) {
-
-                    if (null != mUploadMessage) {
-                        mUploadMessage.onReceiveValue(null);
-                        mUploadMessage = null;
-                    }
-
-                    if (null != mFilePathCallback) {
-                        mFilePathCallback.onReceiveValue(null);
-                        mFilePathCallback = null;
-                    }
-                }
-            }
-        });
-
-        dialog.show();
-    }
-
-    /**
-     * 拍照
-     */
-    File mCaptureFile;
-    private static final int CAPTURE = 0x121;
-    private static final int IMAGE = 0x122;
-
-    private void takePhoto() {
-        String state = Environment.getExternalStorageState();
-        if (state.equals(Environment.MEDIA_MOUNTED)) {
-            try {
-                File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).getAbsolutePath());
-
-                if (!dir.exists()) {
-                    dir.mkdirs();
-                }
-
-                mCaptureFile = new File(dir, "abs_" + System.currentTimeMillis() + ".jpg");
-                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(mCaptureFile));
-                startActivityForResult(intent, CAPTURE);
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        try {
-            if (resultCode == Activity.RESULT_OK) {
-                if (FILE_CHOOSER_VERSION == FILE_CHOOSER_RESULT_CODE) {
-                    if (null == mUploadMessage) {
-                        return;
-                    }
-                    Uri result = null;
-                    if (requestCode == CAPTURE) {
-                        result = Uri.fromFile(mCaptureFile);
-                    } else if (requestCode == IMAGE) {
-                        result = data.getData();
-                    }
-
-                    mUploadMessage.onReceiveValue(result);
-
-                    mUploadMessage = null;
-                } else if (FILE_CHOOSER_VERSION == FILE_CHOOSER_RESULT_CODE_LOLIPOP) {
-                    if (null == mFilePathCallback) {
-                        return;
-                    }
-
-                    Uri result = null;
-                    if (requestCode == CAPTURE) {
-                        result = Uri.fromFile(mCaptureFile);
-                    } else if (requestCode == IMAGE) {
-                        result = data.getData();
-                    }
-
-                    if (null != result) {
-//                        String truePath = getRealPathFromURI(mContext, result);
-                        mFilePathCallback.onReceiveValue(new Uri[]{result});
-                    } else {
-                        mFilePathCallback.onReceiveValue(null);
-                    }
-
-                    mFilePathCallback = null;
-                }
-
-                //刷新系统图片库
-                if (null != mCaptureFile) {
-                    MediaScannerConnection.scanFile(this, new String[]{mCaptureFile.getAbsolutePath()}, new String[]{"image/*"}, new MediaScannerConnection.OnScanCompletedListener() {
-                        @Override
-                        public void onScanCompleted(String path, Uri uri) {
-
-                        }
-                    });
-                }
-            } else if (resultCode == Activity.RESULT_CANCELED) {
-                if (null != mUploadMessage) {
-                    mUploadMessage.onReceiveValue(null);
-                    mUploadMessage = null;
-                }
-
-                if (null != mFilePathCallback) {
-                    mFilePathCallback.onReceiveValue(null);
-                    mFilePathCallback = null;
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 

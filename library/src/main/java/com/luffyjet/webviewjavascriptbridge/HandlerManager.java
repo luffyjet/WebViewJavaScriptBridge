@@ -99,10 +99,10 @@ public class HandlerManager {
     public void exec(final String service, final String action, WebViewJavaScriptBridgeBase.WVJBResponseCallback responseCallback) {
         RequestHandler plugin = getPlugin(service);
         if (plugin == null) {
-            Log.e(TAG, "exec() call to unknown plugin: " + service);
-            if (null != responseCallback) {
-                responseCallback.callback(new JSResult(false).setErrorMessage("当前APP版本不支持该API，请升级APP或者检查拼写是否正确").toJson());
-            }
+            Log.i(TAG, "exec() call to unknown plugin: " + service);
+//            if (null != responseCallback) {
+//                responseCallback.callback(new JSResult(false).setErrorMessage("no RequestHandler for this request").toJson());
+//            }
             return;
         }
 
