@@ -91,12 +91,12 @@ setupWebViewJavascriptBridge(function(bridge) {
 
 	bridge.registerHandler('NativeCallJS', function(data, responseCallback) {
 		var responseData = {
-				'Javascript Says': 'Right back atcha!'
+			'Javascript Says': 'Right back atcha!'
 		};
 
 		log('Native call JS with ', data);
 		responseCallback(responseData);
-    });
+	});
 
 	var doc = document;
 	var readyEvent = doc.createEvent('Events');
