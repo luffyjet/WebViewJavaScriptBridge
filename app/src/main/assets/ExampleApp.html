@@ -1,0 +1,114 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0">
+		<style type='text/css'>
+			html {
+				font-family: Helvetica;
+				color: #222;
+			}
+			
+			h1 {
+				color: steelblue;
+				font-size: 24px;
+				margin-top: 24px;
+			}
+			
+			button {
+				margin: 0 3px 10px;
+				font-size: 12px;
+			}
+			
+			.logLine {
+				border-bottom: 1px solid #ccc;
+				padding: 4px 2px;
+				font-family: courier;
+				font-size: 11px;
+			}
+		</style>
+
+		<script src="js/ccnativeapi.js" type="text/javascript" charset="utf-8"></script>
+
+		<script type="text/javascript">
+			//测试代码----------------------
+			var uniqueId = 1;
+
+			function log(message, data) {
+				var log = document.getElementById('log');
+
+				var el = document.createElement('div');
+
+				el.className = 'logLine';
+
+				el.innerHTML = uniqueId++ + '. ' + message + ':<br/>' + JSON.stringify(data);
+
+				if(log.children.length) {
+					log.insertBefore(el, log.children[0]);
+				} else {
+					log.appendChild(el);
+				}
+			}
+			//--------------------
+
+			function scanQr() {
+				ccapi.scanQRCode({
+					needResult: 1, // 默认为0，扫描结果由app处理，1则直接返回扫描结果，
+
+					scanType: ["qrCode", "barCode"], // 可以指定扫二维码还是一维码，默认二者都有
+
+					success: function(res) {
+						var result = res.resultStr; // 当needResult 为 1 时，扫码返回的结果
+						
+						console.log("scan response: " + result);
+						console.log("scan response: " + JSON.stringify(res));
+						log('Native responding with ', result);
+					}
+				});
+			}
+
+			function chooseImage() {
+				ccapi.chooseImage({
+					count: 1, // 默认9
+					sizeType: ['original', 'compressed'], // 可以指定是原图还是压缩图，默认二者都有
+					sourceType: ['album', 'camera'], // 可以指定来源是相册还是相机，默认二者都有
+					success: function(res) {
+						var localIds = res.localIds; // 返回选定照片的本地ID列表，localId可以作为img标签的src属性显示图片
+						console.log("chooseImage response: " + localIds.toString());
+						console.log("chooseImage response all: " + JSON.stringify(res));
+						var imgTag = document.getElementById("ts_img");
+						imgTag.src = localIds[0];
+						log('Native responding with ', res);
+					}
+				});
+			}
+			
+			
+			function deviceInfo() {
+				ccapi.deviceInfo({
+					full: false, // 可以指定全部获取，还是只要基本信息，默认全部
+					success: function(res) {
+//						var data = JSON.parse(res);
+						console.log("appName: " + res.appName);
+						console.log("appVersion: " + res.appVersion);
+						console.log("all: " + JSON.stringify(res));
+						log('Native responding with ', res);
+					}
+				});
+			}
+		</script>
+	</head>
+
+	<body>
+		<h1>WebViewJavascriptBridge Demo</h1>
+		<div id='buttons'></div>
+		<div id='log'></div>
+
+		<input type="button" id="scan" value="扫码" onclick="scanQr()" />
+        <input type="button" id="chooseimg" value="选图" onclick="chooseImage()" />
+        <input type="button" id="deviceinfo" value="设备信息" onclick="deviceInfo()" />
+        
+        <img src="" id="ts_img" width="100%" height="auto"/>
+	</body>
+
+</html>

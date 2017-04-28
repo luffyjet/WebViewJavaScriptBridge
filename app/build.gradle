@@ -1,0 +1,48 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion Integer.parseInt(rootProject.android_compileSdkVersion)
+    buildToolsVersion rootProject.android_buildToolsVersion
+
+    defaultConfig {
+        applicationId rootProject.example_package
+        minSdkVersion Integer.parseInt(rootProject.android_minSdkVersion)
+        targetSdkVersion Integer.parseInt(rootProject.android_targetSdkVersion)
+        versionCode Integer.parseInt(rootProject.android_versionCode)
+        versionName rootProject.android_versionName
+    }
+
+
+    signingConfigs {
+        release {
+            storeFile file('keystore.jks')
+            storePassword "123456"
+            keyAlias "lzcapp"
+            keyPassword "123456"
+            v2SigningEnabled false//渠道包工具需要
+//            MD5: BF:A5:17:1C:32:6C:9E:87:CB:3E:E9:57:11:70:EB:3F
+//            SHA1: 5C:A3:C5:2C:A1:FA:DA:8C:E9:44:96:7D:79:B7:5B:4D:F8:7E:17:EE
+//            SHA256: F9:6D:2F:90:F3:C4:1A:B4:C5:6B:87:FD:15:11:CE:EA:AE:65:AD:B5:84:6E:D6:A1:D7:2E:BA:80:FF:FC:ED:71
+//            签名算法名称: SHA256withRSA
+//            版本: 3
+        }
+    }
+
+
+    buildTypes {
+        release {
+//            debuggable true
+            minifyEnabled true
+            shrinkResources false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile "com.android.support:appcompat-v7:${android_support}"
+    compile "com.google.code.gson:gson:${android_gson}"
+    compile project(':library')
+}

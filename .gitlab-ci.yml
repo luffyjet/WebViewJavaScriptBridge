@@ -1,0 +1,18 @@
+stages:
+  - build
+  - archive
+
+build_project:
+  stage: build
+  script:
+      - gradle clean
+
+archive_project:
+  stage: archive
+  script:
+    - gradle assembleRelease
+  only:
+    - master
+  artifacts:
+    paths:
+      - app/build/outputs/apk/

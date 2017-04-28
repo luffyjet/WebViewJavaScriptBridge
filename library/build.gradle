@@ -1,0 +1,34 @@
+apply plugin: 'com.android.library'
+apply plugin: 'com.novoda.bintray-release'
+android {
+    compileSdkVersion Integer.parseInt(rootProject.android_compileSdkVersion)
+    buildToolsVersion rootProject.android_buildToolsVersion
+
+    defaultConfig {
+        minSdkVersion Integer.parseInt(rootProject.android_minSdkVersion)
+        targetSdkVersion Integer.parseInt(rootProject.android_targetSdkVersion)
+        versionCode Integer.parseInt(rootProject.android_versionCode)
+        versionName rootProject.android_versionName
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+
+}
+
+publish {
+    userOrg = 'luffyjetx'
+    groupId = 'com.luffyjet'
+    artifactId = 'webviewjavascriptbridge'
+    publishVersion = '1.0'
+    desc = 'android webview javascript bridge'
+    website = 'https://github.com/luffyjet/webviewjavascriptbridge'
+    licences = ['Apache-2.0']
+}
