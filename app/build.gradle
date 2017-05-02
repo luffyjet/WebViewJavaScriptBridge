@@ -25,5 +25,6 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile "com.android.support:appcompat-v7:${android_support}"
     compile "com.google.code.gson:gson:${android_gson}"
-    compile project(':library')
+//    compile project(':library')
+    compile 'com.luffyjet:webviewjavascriptbridge:1.0'
 }
