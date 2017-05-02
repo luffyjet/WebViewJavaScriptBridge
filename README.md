@@ -1,14 +1,15 @@
 WebViewJavascriptBridge
 ==========================
-根据[IOS marcuswestin/WebViewJavascriptBridge](https://github.com/marcuswestin/WebViewJavascriptBridge) 编写而来的JavascriptBridge，这样一来前端可以公用一套JS代码。使用方法和 marcuswestin/WebViewJavascriptBridge 也是基本一样。
+根据[IOS marcuswestin/WebViewJavascriptBridge](https://github.com/marcuswestin/WebViewJavascriptBridge) 编写而来的JavascriptBridge。
 
-原理其实就是在 shouldOverrideUrlLoading 方法里截取特定的Url。
 
-同时也在此之上做了加强，根据Cordova的源码，将每一种消息封装成一个插件(RequestHandler)，并统一管理起来(HandlerManager)。具体请看下面的 插件管理功能一栏。
+相比同类库的优点：
+1. 和[IOS marcuswestin/WebViewJavascriptBridge](https://github.com/marcuswestin/WebViewJavascriptBridge) 一样的使用方法,共用一套JS代码。
+2. 同时也在此之上做了加强，根据Cordova的源码，将每一种消息封装成一个插件(RequestHandler)，并统一管理起来(HandlerManager)，方便把各种不同的原生功能封装成独立的模块。具体请看下面的 插件管理功能一栏。
 
 规定JS和Java之间用标准JSON格式字符串交互，JS传给Java的数据会封装成 org.json.JSONObject。
 
-An Android bridge for sending messages between Java and JavaScript in WebViews. Based on [IOS marcuswestin/WebViewJavascriptBridge](https://github.com/marcuswestin/WebViewJavascriptBridge).
+(An Android bridge for sending messages between Java and JavaScript in WebViews. Based on [IOS marcuswestin/WebViewJavascriptBridge](https://github.com/marcuswestin/WebViewJavascriptBridge).)
 
 
 ### Gradle
