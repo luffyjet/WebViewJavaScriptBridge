@@ -80,6 +80,7 @@ function setupWebViewJavascriptBridge(callback) {
 	window.WVJBCallbacks = [callback];
 	var WVJBIframe = document.createElement('iframe');
 	WVJBIframe.style.display = 'none';
+	//这里最新IOS版是 https的scheme，真实环境下 需要判断iOS和Android，做下区分。
 	WVJBIframe.src = 'wvjbscheme://__BRIDGE_LOADED__';
 	document.documentElement.appendChild(WVJBIframe);
 	setTimeout(function() {
