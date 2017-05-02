@@ -4,8 +4,8 @@ WebViewJavascriptBridge
 
 
 相比同类库的优点：
-1. 和[IOS marcuswestin/WebViewJavascriptBridge](https://github.com/marcuswestin/WebViewJavascriptBridge) 一样的使用方法,共用一套JS代码。
-2. 同时也在此之上做了加强，根据Cordova的源码，将每一种消息封装成一个插件(RequestHandler)，并统一管理起来(HandlerManager)，方便把各种不同的原生功能封装成独立的模块。具体请看下面的 插件管理功能一栏。
+1. 和[IOS marcuswestin/WebViewJavascriptBridge](https://github.com/marcuswestin/WebViewJavascriptBridge) 一样的使用方法,可共用一套JS代码。
+2. 同时也在此之上做了加强，参考了Cordova源码的模块管理，我们可将同一种消息封装成一个对应的模块， 利用HandlerManager管理他们的加载和消息传递，方便把各种不同的原生功能封装成独立的模块并统一管理。具体请看下面的 模块管理功能一栏。
 
 规定JS和Java之间用标准JSON格式字符串交互，JS传给Java的数据会封装成 org.json.JSONObject。
 
@@ -112,9 +112,9 @@ setupWebViewJavascriptBridge(function(bridge) {
 ```
 
 
-## 插件管理功能
-可以和Cordova一样进行插件管理，每一种类型的消息都由一个插件管理。
-插件类继承至 RequestHandler ，包含WebView的Activity要实现 BridgeInterface 接口。插件类由XML文件进行配置,请新建 res/xml/wjbconfig.xml 文件。
+## 模块管理功能
+可以和Cordova一样进行模块管理，同一种类型的消息(handler name相同)都由一个模块处理。
+模块类需要继承 RequestHandler ，包含WebView的Activity要实现 BridgeInterface 接口。插件类由XML文件进行配置,请新建 res/xml/wjbconfig.xml 文件。
 
 ```
 <?xml version="1.0" encoding="utf-8"?>
