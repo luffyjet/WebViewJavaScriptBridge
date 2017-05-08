@@ -10,10 +10,6 @@ import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 
-/**
- * Created by 龙仲春 on 15/8/28
- * project ：ccplus
- */
 public class PathUtil {
     /**
      * 根据Uri获取图片绝对路径，解决Android4.4以上版本Uri转换

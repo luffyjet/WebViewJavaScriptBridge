@@ -5,13 +5,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.telephony.TelephonyManager;
 
-/**
- * Title :    
- * Author : luffyjet 
- * Date : 15/12/31
- * Project :
- * Site : http://www.luffyjet.com
- */
+
 public class NetworkStauts {
     private static final int NETWORK_TYPE_UNAVAILABLE = -1;
     private static final int NETWORK_TYPE_WIFI = -101;
